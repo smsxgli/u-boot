@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 #
 # Copyright (C) 2020 Rockchip Electronics Co., Ltd
 #
@@ -41,7 +41,12 @@ def generate_atf_binary(bl31_file_name):
             atf.write(data)
 
 def main():
-    bl31_elf="./bl31.elf"
+    if 'BL31' in os.environ:
+        bl31_elf = os.getenv('BL31')
+    elif os.exists('./bl31.elf') and os.path.isfile('./bl31.elf'):
+        bl31_elf = './bl31.elf'
+    else:
+        exit(-1)
     generate_atf_binary(bl31_elf);
 
 if __name__ == "__main__":

@@ -175,6 +175,9 @@ function gen_bl32_node()
 	fi
 
 	TEE="tee.bin"
+	if [ ! -z "${BL32}" ]; then
+		cp -f "${BL32}" ${TEE}
+	fi
 	echo "		optee {
 			description = \"OP-TEE\";
 			data = /incbin/(\"${TEE}${SUFFIX}\");
