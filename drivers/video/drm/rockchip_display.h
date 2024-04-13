@@ -253,6 +253,7 @@ struct connector_state {
 
 struct logo_info {
 	int mode;
+	int rotate;
 	char *mem;
 	bool ymirror;
 	u32 offset;
@@ -265,6 +266,7 @@ struct rockchip_logo_cache {
 	struct list_head head;
 	char name[20];
 	struct logo_info logo;
+	int logo_rotate;
 };
 
 struct display_state {
@@ -283,6 +285,7 @@ struct display_state {
 	struct logo_info logo;
 	int logo_mode;
 	int charge_logo_mode;
+	int logo_rotate;
 	void *mem_base;
 	int mem_size;
 
@@ -317,6 +320,10 @@ int display_rect_calc_vscale(struct display_rect *src, struct display_rect *dst,
 			     int min_vscale, int max_vscale);
 const struct device_node *
 rockchip_of_graph_get_endpoint_by_regs(ofnode node, int port, int endpoint);
+const struct device_node *
+rockchip_of_graph_get_port_by_id(ofnode node, int id);
+uint32_t rockchip_drm_get_cycles_per_pixel(uint32_t bus_format);
+char* rockchip_get_output_if_name(u32 output_if, char *name);
 
 #ifdef CONFIG_SPL_BUILD
 int rockchip_spl_vop_probe(struct crtc_state *crtc_state);

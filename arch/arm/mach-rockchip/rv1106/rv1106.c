@@ -127,6 +127,9 @@ DECLARE_GLOBAL_DATA_PTR;
 
 #define GPIO4_IOC_GPIO4B_DS0		0x0030
 
+#define VICRU_BASE			0XFF3B4000
+#define VICRU_VISOFTRST_CON01		0xA04
+
 /* OS_REG1[2:0]: chip ver */
 #define CHIP_VER_REG			0xff020204
 #define CHIP_VER_MSK			0x7
@@ -401,9 +404,32 @@ void board_debug_uart_init(void)
 #endif
 }
 
+#ifdef CONFIG_SUPPORT_USBPLUG
+void board_set_iomux(enum if_type if_type, int devnum, int routing)
+{
+	switch (if_type) {
+	case IF_TYPE_MMC:
+		/* emmc iomux */
+		writel(0xffff1111, GPIO4_IOC_BASE + GPIO4A_IOMUX_SEL_L);
+		writel(0xffff1111, GPIO4_IOC_BASE + GPIO4A_IOMUX_SEL_H);
+		writel(0x00ff0011, GPIO4_IOC_BASE + GPIO4B_IOMUX_SEL_L);
+		break;
+	case IF_TYPE_MTD:
+		/* fspi iomux */
+		writel(0x0f000700, GPIO4_IOC_BASE + 0x0030);
+		writel(0xff002200, GPIO4_IOC_BASE + GPIO4A_IOMUX_SEL_L);
+		writel(0x0f0f0202, GPIO4_IOC_BASE + GPIO4A_IOMUX_SEL_H);
+		writel(0x00ff0022, GPIO4_IOC_BASE + GPIO4B_IOMUX_SEL_L);
+		break;
+	default:
+		break;
+	}
+}
+#endif
+
 int arch_cpu_init(void)
 {
-#ifdef CONFIG_SPL_BUILD
+#if defined(CONFIG_SPL_BUILD) || defined(CONFIG_SUPPORT_USBPLUG)
 	/* Save chip version to OS_REG1[2:0] */
 	if (readl(ROM_VER_REG) == ROM_V2)
 		writel((readl(CHIP_VER_REG) & ~CHIP_VER_MSK) | V(2), CHIP_VER_REG);
@@ -495,6 +521,11 @@ int arch_cpu_init(void)
 #endif
 
 #endif
+	/* reset sdmmc0 to prevent power leak */
+	writel(0x30003000, VICRU_BASE + VICRU_VISOFTRST_CON01);
+	udelay(1);
+	writel(0x30000000, VICRU_BASE + VICRU_VISOFTRST_CON01);
+
 	return 0;
 }
 
